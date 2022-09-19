@@ -8,6 +8,14 @@ resource "aws_instance" "ec2" {
   key_name          = "MyKey"             #"<existing key-pair Name"
   security_groups   = ["launch-wizard-1"] #existing sec grp name
 
+  user_data = <<-EOF
+    #1/bin/bash
+    sudo apt update -y
+    sudo apt install apache2 -y
+    sudo systemctl start apache2
+    sudo chown -R $USER:$USER /var/www/html
+    EOF
+
   tags = {
     "Name" = "Mywebserver"
   }
