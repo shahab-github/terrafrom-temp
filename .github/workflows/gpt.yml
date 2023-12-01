@@ -1,0 +1,47 @@
+name: Delete stale branches Claude
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *" # Runs every day at midnight
+
+jobs:
+
+  delete-stale-branches:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Get list of stale branches
+      run: |
+        stale_branches=$(git branch -a | grep remotes/origin | awk '{print $1}' | grep -v HEAD | while read branch; do
+          last_commit=$(git log -1 --format="%ad" $branch)  
+          no_of_days=$(date -d "$last_commit" +%s | xargs -I{} date -d "@{} + 60 days" +%s | xargs -I{} date -d "@{}" +"%j")
+          current_day=$(date +"%j")          
+          if (( $current_day > $no_of_days )); then
+            echo $branch
+          fi
+        done)
+        echo $stale_branches | tee stale_branches.txt
+
+    - name: Open issues for stale branches  
+      uses: peter-evans/create-issue-from-file@v3
+      with:
+        title: Stale branch
+        content-filepath: ./stale_branches.txt 
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Delete stale branches
+      run: | 
+        branches=$(cat stale_branches.txt)
+        for branch in $branches; do    
+          git push origin --delete $branch  
+        done
+        
+    - name: Close issues   
+      uses: peter-evans/close-issue@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        issue-number: ${{ steps.cisf.outputs.issue-number }}
