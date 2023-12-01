@@ -17,10 +17,10 @@ jobs:
     - name: Get list of stale branches
       run: |
         stale_branches=$(git branch -a | grep remotes/origin | awk '{print $1}' | grep -v HEAD | while read branch; do
-          last_commit=$(git log -1 --format="%ad" $branch)  
-          no_of_days=$(date -d "$last_commit" +%s | xargs -I{} date -d "@{} + 60 days" +%s | xargs -I{} date -d "@{}" +"%j")
-          current_day=$(date +"%j")          
-          if (( $current_day > $no_of_days )); then
+          last_commit=$(git log -1 --format="%at" $branch)
+          date1=$(($(date +%s) - 60*60*24*60))
+          date2=$last_commit
+          if (( $date1 > $date2 )); then    
             echo $branch
           fi
         done)
