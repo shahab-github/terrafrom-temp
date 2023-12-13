@@ -1,8 +1,8 @@
 name: Purge Branches
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 10 * * *' # every day @ 10 AM UTC
+#  schedule:
+#    - cron: '0 10 * * *' # every day @ 10 AM UTC
 jobs:
   purgeBranches:
     runs-on: ubuntu-latest
